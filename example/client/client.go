@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/henrythethird/gotcp"
@@ -19,7 +19,7 @@ func main() {
 	err := client.Connect("127.0.0.1:8888")
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
 	}
 
 	errChan := make(chan error)
@@ -31,13 +31,12 @@ func main() {
 	for {
 		select {
 		case e := <-errChan:
-			fmt.Println(e.Error())
-			return
+			log.Fatalln(e.Error())
 		default:
 			events := handler.Handle()
 
 			if len(events) > 0 {
-				fmt.Println(events)
+				log.Println(events)
 			}
 		}
 
