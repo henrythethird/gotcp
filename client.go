@@ -19,37 +19,38 @@ type Client struct {
 }
 
 // NewClient instantiates a new client
-func NewClient(dispatcher *event.Dispatcher) *Client {
+func NewClient(dispatcher *event.Dispatcher, socket net.Conn) *Client {
 	return &Client{
 		parser:     newParser(),
 		packer:     newPacker(),
 		dispatcher: dispatcher,
+		socket:     socket,
 	}
 }
 
-// ConnectAndListen connects to a server given its address and starts listeing
-func (c *Client) ConnectAndListen(address string) error {
+// Connect connects to a server given its address
+func (c *Client) Connect(address string) error {
 	socket, err := net.Dial("tcp", address)
 
 	if err != nil {
 		return err
 	}
 
-	defer socket.Close()
+	c.socket = socket
 
-	return c.Listen(socket)
+	return nil
 }
 
 // Listen listens to messages from the server
-func (c *Client) Listen(socket net.Conn) error {
-	c.socket = socket
+func (c *Client) Listen() error {
+	defer c.socket.Close()
 
 	buffer := make([]byte, bufferLength)
 
 	c.emitEvent("connect", c)
 
 	for {
-		len, err := socket.Read(buffer)
+		len, err := c.socket.Read(buffer)
 
 		if err != nil {
 			c.emitEvent("disconnect", c)

@@ -13,17 +13,24 @@ func main() {
 
 	client := gotcp.NewClient(
 		event.NewDispatcher(handler),
+		nil,
 	)
 
-	err := make(chan error)
+	err := client.Connect("127.0.0.1:8888")
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	errChan := make(chan error)
 
 	go func() {
-		err <- client.ConnectAndListen("127.0.0.1:8888")
+		errChan <- client.Listen()
 	}()
 
 	for {
 		select {
-		case e := <-err:
+		case e := <-errChan:
 			fmt.Println(e.Error())
 			return
 		default:
@@ -34,8 +41,7 @@ func main() {
 			}
 		}
 
-		time.Sleep(1000000000)
-
 		client.Send("hello :-)")
+		time.Sleep(100000000)
 	}
 }

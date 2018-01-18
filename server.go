@@ -10,11 +10,15 @@ import (
 // Server is the server side of client-server communication
 type Server struct {
 	handler *event.Handler
+	clients []*Client
 }
 
 // NewServer instantiates a new TCP server
 func NewServer(handler *event.Handler) *Server {
-	return &Server{handler}
+	return &Server{
+		handler: handler,
+		clients: make([]*Client, 32),
+	}
 }
 
 // Listen starts listening for client communication
@@ -39,8 +43,11 @@ func (s *Server) Listen(address string) error {
 
 		client := NewClient(
 			event.NewDispatcher(s.handler),
+			cliSocket,
 		)
 
-		go client.Listen(cliSocket)
+		s.clients = append(s.clients, client)
+
+		go client.Listen()
 	}
 }
