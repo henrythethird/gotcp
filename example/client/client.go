@@ -28,19 +28,23 @@ func main() {
 		errChan <- client.Listen()
 	}()
 
+	tick := time.Tick(100 * time.Millisecond)
+
 	for {
 		select {
-		case e := <-errChan:
-			log.Fatalln(e.Error())
-		default:
-			events := handler.Handle()
+		case <-tick:
+			select {
+			case e := <-errChan:
+				log.Fatalln(e.Error())
+			default:
+				events := handler.Handle()
 
-			if len(events) > 0 {
-				log.Println(events)
+				if len(events) > 0 {
+					log.Println(events)
+				}
 			}
-		}
 
-		client.Send("hello :-)")
-		time.Sleep(100000000)
+			client.Send("hello :-)")
+		}
 	}
 }

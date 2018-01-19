@@ -32,22 +32,26 @@ func (s *Server) Listen(address string) error {
 	defer listener.Close()
 
 	for {
-		cliSocket, err := listener.Accept()
-
-		if err != nil {
-			log.Println("Client failed to connect:", err.Error())
-			continue
-		}
-
-		defer cliSocket.Close()
-
-		client := NewClient(
-			event.NewDispatcher(s.handler),
-			cliSocket,
-		)
-
-		s.clients = append(s.clients, client)
-
-		go client.Listen()
+		s.handleNew(listener)
 	}
+}
+
+func (s *Server) handleNew(listener net.Listener) {
+	cliSocket, err := listener.Accept()
+
+	if err != nil {
+		log.Println("Client failed to connect:", err.Error())
+		return
+	}
+
+	defer cliSocket.Close()
+
+	client := NewClient(
+		event.NewDispatcher(s.handler),
+		cliSocket,
+	)
+
+	s.clients = append(s.clients, client)
+
+	go client.Listen()
 }
